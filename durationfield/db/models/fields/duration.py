@@ -2,12 +2,12 @@
 from datetime import timedelta
 from django.core import exceptions
 from django.db.models.fields import Field
-from django.db import models
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_text
 
 from durationfield.utils.timestring import str_to_timedelta
+from durationfield.utils.descriptor import CastOnAssignDescriptor
 from durationfield.forms.fields import DurationField as FDurationField
 
 try:
@@ -16,7 +16,7 @@ except ImportError:
     add_introspection_rules = None
 
 
-class DurationField(six.with_metaclass(models.SubfieldBase, Field)):
+class DurationField(Field):
     """
     A duration field is used
     """
@@ -67,6 +67,9 @@ class DurationField(six.with_metaclass(models.SubfieldBase, Field)):
         value = self._get_val_from_obj(obj)
         return smart_text(value)
 
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
+
     def to_python(self, value):
         """
         Converts the input value into the timedelta Python data type, raising
@@ -99,6 +102,10 @@ class DurationField(six.with_metaclass(models.SubfieldBase, Field)):
         defaults = {'form_class': FDurationField}
         defaults.update(kwargs)
         return super(DurationField, self).formfield(**defaults)
+
+    def contribute_to_class(self, cls, name):
+        super(DurationField, self).contribute_to_class(cls, name)
+        setattr(cls, name, CastOnAssignDescriptor(self))
 
 
 if add_introspection_rules:

@@ -97,7 +97,7 @@ class DurationFieldTests(TestCase):
 
     def testApplicationType(self):
         """
-        Timedeltas should be returned to the applciation
+        Timedeltas should be returned to the application
         """
         for td in self.test_tds:
             model_test = TestModel()
